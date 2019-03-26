@@ -20,3 +20,81 @@ function loadBookData() {
 $(function () {
     loadBookData();
 });
+
+$(document).ready(function () {
+
+    $("#add_book").click(function () {
+        $("#add_boo_window").data("kendoWindow").center().open();
+    });
+    $("#add_boo_window").kendoWindow({
+        width: "600px",
+        title: "新增書籍",
+
+        visible: false,
+        actions: [
+            "Pin",
+            "Minimize",
+            "Maximize",
+            "Close"
+        ],
+    });
+
+    $("#book_grid").kendoGrid({
+        dataSource: {
+            data: bookData,
+            schema: {
+                model: {
+                    fields: {
+                        BookId: { type: "number" },
+                        BookName: { type: "string" },
+                        BookCategory: { type: "string" },
+                        BookAuthor: { type: "string" },
+                        BookBoughtDate: { type: "date" },
+                        BookDeliveredDate: { type: "date" },
+                        BookPrice: { type: "number" },
+                        BookAmount: { type: "number" },
+                        BookTotal: { type: "number" }
+                    }
+                }
+            },
+            pageSize: 20
+        },
+        height: 550,
+        groupable: true,
+        sortable: true,
+        pageable: {
+            refresh: true,
+            pageSizes: true,
+            buttonCount: 5
+        },
+        columns: [{
+            field: "BookId",
+            title: "書籍編號"
+        }, {
+            field: "BookName",
+            title: "書籍名稱"
+        }, {
+            field: "BookCategory",
+            title: "書籍種類"
+        }, {
+            field: "BookAuthor",
+            title: "作者"
+        }, {
+            field: "BookBoughtDate",
+            title: "購買日期"
+        }, {
+            field: "BookDeliveredDate",
+            title: "送達狀態"
+        }, {
+            field: "BookPrice",
+            title: "金額"
+        }, {
+            field: "BookAmount",
+            title: "數量"
+        }, {
+            field: "BookTotal",
+            title: "總計"
+        }]
+    });
+
+});
