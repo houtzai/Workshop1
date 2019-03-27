@@ -22,6 +22,7 @@ $(function () {
 });
 
 $(document).ready(function () {
+    kendo.culture('zh-TW');
 
     $("#add_book").click(function () {
         $("#add_boo_window").data("kendoWindow").center().open();
@@ -57,17 +58,18 @@ $(document).ready(function () {
                     }
                 }
             },
-            pageSize: 20
+            pageSize: 20,
         },
         height: 550,
         groupable: true,
         sortable: true,
         pageable: {
-            refresh: true,
-            pageSizes: true,
-            buttonCount: 5
+            input: true,
+            numeric: false
         },
         columns: [{
+            command: "刪除"
+        },{
             field: "BookId",
             title: "書籍編號"
         }, {
