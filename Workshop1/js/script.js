@@ -21,14 +21,31 @@ $(function () {
     loadBookData();
 });
 
+function isNumeric(n) {
+    return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
+function getBoolean(str) {
+    if ("true".startsWith(str)) {
+        return true;
+    } else if ("false".startsWith(str)) {
+        return false;
+    } else {
+        return null;
+    }
+}
+
+
+
 $(document).ready(function () {
     kendo.culture('zh-TW');
 
     $("#add_book").click(function () {
-        $("#add_boo_window").data("kendoWindow").center().open();
+        $("#add_window").data("kendoWindow").center().open();
     });
-    $("#add_boo_window").kendoWindow({
-        width: "600px",
+
+    $("#add_window").kendoWindow({
+        width: 800,
         title: "新增書籍",
 
         visible: false,
@@ -40,63 +57,123 @@ $(document).ready(function () {
         ],
     });
 
+
+
     $("#book_grid").kendoGrid({
         dataSource: {
-            data: bookData,
-            schema: {
-                model: {
-                    fields: {
-                        BookId: { type: "number" },
-                        BookName: { type: "string" },
-                        BookCategory: { type: "string" },
-                        BookAuthor: { type: "string" },
-                        BookBoughtDate: { type: "date" },
-                        BookDeliveredDate: { type: "date" },
-                        BookPrice: { type: "number" },
-                        BookAmount: { type: "number" },
-                        BookTotal: { type: "number" }
-                    }
-                }
-            },
+            data: bookDataFromLocalStorage,
             pageSize: 20,
         },
-        height: 550,
-        groupable: true,
+        height: 800,
+        toolbar: kendo.template($("#template").html()),
         sortable: true,
         pageable: {
             input: true,
             numeric: false
         },
         columns: [{
-            command: "刪除"
-        },{
+            command: { text: "刪除", click: showDetails }
+        }, {
             field: "BookId",
-            title: "書籍編號"
+            title: "書籍編號",
+            type: "number"
         }, {
             field: "BookName",
-            title: "書籍名稱"
+            title: "書籍名稱",
+            type: "string"
         }, {
             field: "BookCategory",
-            title: "書籍種類"
+            title: "書籍種類",
+            type: "string"
         }, {
             field: "BookAuthor",
-            title: "作者"
+            title: "作者",
+            type: "string"
         }, {
             field: "BookBoughtDate",
-            title: "購買日期"
+            title: "購買日期",
+            type: "date",
+            format: "{0:yyyy-MM-dd}"
         }, {
             field: "BookDeliveredDate",
-            title: "送達狀態"
+            title: "送達狀態",
+            type: "date",
+            format: "{0:yyyy-MM-dd}"
         }, {
             field: "BookPrice",
-            title: "金額"
+            title: "金額",
+            type: "number",
+            format: "{0:N0}元",
+            attributes: { style: "text-align:right" }
         }, {
             field: "BookAmount",
-            title: "數量"
+            title: "數量",
+            type: "number",
+            format: "{0:N0}",
+            attributes: { style: "text-align:right" }
         }, {
             field: "BookTotal",
-            title: "總計"
+            title: "總計",
+            type: "number",
+            format: "{0:N0}元",
+            attributes: { style: "text-align:right" }
         }]
     });
+    $('#search').on('input', function (e) {
+        var grid = $('#book_grid').data('kendoGrid');
+        var columns = grid.columns;
 
+        var filter = { logic: 'or', filters: [] };
+        columns.forEach(function (x) {
+            if (x.field) {
+                var type = grid.dataSource.options.schema.model.fields[x.field].type;
+                if (type == 'string') {
+                    filter.filters.push({
+                        field: x.field,
+                        operator: 'contains',
+                        value: e.target.value
+                    })
+                }
+                else if (type == 'number') {
+                    if (isNumeric(e.target.value)) {
+                        filter.filters.push({
+                            field: x.field,
+                            operator: 'eq',
+                            value: e.target.value
+                        });
+                    }
+
+                } else if (type == 'date') {
+                    var data = grid.dataSource.data();
+                    for (var i = 0; i < data.length; i++) {
+                        var dateStr = kendo.format(x.format, data[i][x.field]);
+                        if (dateStr.startsWith(e.target.value)) {
+                            filter.filters.push({
+                                field: x.field,
+                                operator: 'eq',
+                                value: data[i][x.field]
+                            })
+                        }
+                    }
+                } else if (type == 'boolean' && getBoolean(e.target.value) !== null) {
+                    var bool = getBoolean(e.target.value);
+                    filter.filters.push({
+                        field: x.field,
+                        operator: 'eq',
+                        value: bool
+                    });
+                }
+            }
+        });
+        grid.dataSource.filter(filter);
+    });
+
+    function showDetails(e) {
+        data.todo.splice(data.todo.indexOf('task 3'), 1);
+    }
 });
+
+
+
+
+   
