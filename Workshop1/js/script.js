@@ -39,15 +39,13 @@ function getBoolean(str) {
 
 $(document).ready(function () {
     kendo.culture('zh-TW');
-
+    //add_book
     $("#add_book").click(function () {
         $("#add_window").data("kendoWindow").center().open();
     });
-
     $("#add_window").kendoWindow({
         width: 800,
         title: "新增書籍",
-
         visible: false,
         actions: [
             "Pin",
@@ -56,9 +54,61 @@ $(document).ready(function () {
             "Close"
         ],
     });
+    $("#book_category").kendoDropDownList({
+        dataTextField: "text",
+        dataValueField: "value",
+        dataSource: bookCategoryList,
+        index: 0,
+        change: onChange
+    });
+    var book_category = $("#book_category").data("kendoDropDownList");
+    book_category.select(0);
+    function onChange() {
+        var src = "";
+        bookCategoryList.forEach(function (item, index, array) {
+            if (item.value === $("#book_category").val()) {
+                 src = item.src;
+            }    
+        });      
+        $('.book-image').attr('src', src);
+    };
+    $("#bought_datepicker").kendoDatePicker();
+    $("#delivered_datepicker").kendoDatePicker();
+    var book_price = 0, book_amount = 0, book_total = 0;
+    $("#book_price").kendoNumericTextBox({
+        format: "{0:N0}",
+        change: function () {
+            book_price = this.value();
+            book_total = book_price * book_amount;
+            $("#book_total").text(kendo.toString(book_total, "n0"));
+        }
+    });
+    $("#book_amount").kendoNumericTextBox({
+        format: "{0:N0}",
+        change: function () {
+            book_amount = this.value();
+            book_total = book_price * book_amount;
+            $("#book_total").text(kendo.toString(book_total, "n0"));
+        }
+    });
+    $("#save_book").click(function () {
+        var bookdata_list = JSON.parse(localStorage.getItem('bookData'));
+        var newbookdata = {
+            "BookId": bookdata_list.length + 1,
+            "BookCategory": $("#book_category").val(),
+            "BookName": $("#book_name").val(),
+            "BookAuthor": $("#book_author").val(),
+            "BookBoughtDate": $("#bought_datepicker").val(),
+            "BookPublisher": $("#delivered_datepicker").val(),
+            "BookPrice": parseInt($("#book_price").val(), 10),
+            "BookAmount": parseInt($("#book_amount").val(), 10),
+            "BookTotal": book_total
+        };
+        bookdata_list.push(newbookdata);
+        localStorage.setItem('bookData', JSON.stringify(bookdata_list));
+    });
 
-
-
+    //book_grid
     $("#book_grid").kendoGrid({
         dataSource: {
             data: bookDataFromLocalStorage,
@@ -119,6 +169,10 @@ $(document).ready(function () {
             attributes: { style: "text-align:right" }
         }]
     });
+    function showDetails(e) {
+
+    }
+    //search
     $('#search').on('input', function (e) {
         var grid = $('#book_grid').data('kendoGrid');
         var columns = grid.columns;
@@ -168,12 +222,9 @@ $(document).ready(function () {
         grid.dataSource.filter(filter);
     });
 
-    function showDetails(e) {
-        data.todo.splice(data.todo.indexOf('task 3'), 1);
-    }
 });
 
 
 
 
-   
+
