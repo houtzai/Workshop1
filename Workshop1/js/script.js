@@ -182,7 +182,9 @@ $(document).ready(function () {
             title: "送達狀態",
             type: "date",
             format: "{0:yyyy-MM-dd}",
-                //template: "#= (BookDeliveredDate == null) ? <i class='fas fa-truck' title='123'></i>  : BookDeliveredDate #"
+                template: "#if (BookDeliveredDate !=null){#" +
+                    "<i class='fas fa-truck' title='#: kendo.toString(BookDeliveredDate, 'yyyy-MM-dd') #'></i>" +
+                "#}#"
         }, {
             field: "BookPrice",
             title: "金額",
