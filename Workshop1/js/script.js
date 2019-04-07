@@ -38,6 +38,7 @@ function getBoolean(str) {
 
 
 $(document).ready(function () {
+    //語系
     kendo.culture('zh-TW');
     //add_book
     $("#add_book").click(function () {
@@ -59,21 +60,24 @@ $(document).ready(function () {
         dataValueField: "value",
         dataSource: bookCategoryList,
         index: 0,
-        change: onChange
+        change: function (e) {
+            var src = "";
+            bookCategoryList.forEach(function (item, index, array) {
+                if (item.value === $("#book_category").val()) {
+                    src = item.src;
+                }
+            });
+            $('.book-image').attr('src', src);
+        }
     });
-    var book_category = $("#book_category").data("kendoDropDownList");
-    book_category.select(0);
-    function onChange() {
-        var src = "";
-        bookCategoryList.forEach(function (item, index, array) {
-            if (item.value === $("#book_category").val()) {
-                 src = item.src;
-            }    
-        });      
-        $('.book-image').attr('src', src);
-    };
-    $("#bought_datepicker").kendoDatePicker();
-    $("#delivered_datepicker").kendoDatePicker();
+    var todayDate = kendo.toString(kendo.parseDate(new Date()), 'yyyy-MM-dd');
+    $("#bought_datepicker").kendoDatePicker({
+        format: "yyyy-MM-dd",
+        value: todayDate
+    });
+    $("#delivered_datepicker").kendoDatePicker({
+        format: "yyyy-MM-dd",
+    });
     var book_price = 0, book_amount = 0, book_total = 0;
     $("#book_price").kendoNumericTextBox({
         format: "{0:N0}",
@@ -92,23 +96,44 @@ $(document).ready(function () {
         }
     });
     $("#save_book").click(function () {
-        var bookdata_list = JSON.parse(localStorage.getItem('bookData'));
         var newbookdata = {
-            "BookId": bookdata_list.length + 1,
+            "BookId": bookDataFromLocalStorage.length + 1,
             "BookCategory": $("#book_category").val(),
             "BookName": $("#book_name").val(),
             "BookAuthor": $("#book_author").val(),
             "BookBoughtDate": $("#bought_datepicker").val(),
-            "BookPublisher": $("#delivered_datepicker").val(),
+            "BookPublisher": "",
+            "BookDeliveredDate": $("#delivered_datepicker").val(),
             "BookPrice": parseInt($("#book_price").val(), 10),
             "BookAmount": parseInt($("#book_amount").val(), 10),
             "BookTotal": book_total
         };
-        bookdata_list.push(newbookdata);
-        localStorage.setItem('bookData', JSON.stringify(bookdata_list));
+        bookDataFromLocalStorage.push(newbookdata);
+        localStorage.setItem('bookData', JSON.stringify(bookDataFromLocalStorage));
     });
 
     //book_grid
+    var deletedata;
+    var wnd = $("#delete_details").kendoDialog({
+        modal: false,
+        visible: false,
+        resizable: false,
+        title: false,
+        actions: [
+            {
+                text: 'OK', primary: true, action: function (e) {
+                    for (var key in bookDataFromLocalStorage) {
+                        if (bookDataFromLocalStorage[key]["BookId"] == deletedata) {
+                            bookDataFromLocalStorage.splice(key, 1);
+                        }
+                    }
+                    localStorage.setItem('bookData', JSON.stringify(bookDataFromLocalStorage));
+                }
+            },
+            { text: 'CANCEL' }
+        ],
+    }).data("kendoDialog");
+
     $("#book_grid").kendoGrid({
         dataSource: {
             data: bookDataFromLocalStorage,
@@ -122,7 +147,15 @@ $(document).ready(function () {
             numeric: false
         },
         columns: [{
-            command: { text: "刪除", click: showDetails }
+            command: {
+                text: "刪除", click: function (e) {
+                    e.preventDefault();
+                    var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+                    deletedata = dataItem.BookId;
+                    wnd.content("確定刪除[" + dataItem.BookName + "]嗎?");
+                    wnd.open();
+                }
+            }
         }, {
             field: "BookId",
             title: "書籍編號",
@@ -148,7 +181,8 @@ $(document).ready(function () {
             field: "BookDeliveredDate",
             title: "送達狀態",
             type: "date",
-            format: "{0:yyyy-MM-dd}"
+            format: "{0:yyyy-MM-dd}",
+                //template: "#= (BookDeliveredDate == null) ? <i class='fas fa-truck' title='123'></i>  : BookDeliveredDate #"
         }, {
             field: "BookPrice",
             title: "金額",
@@ -169,9 +203,8 @@ $(document).ready(function () {
             attributes: { style: "text-align:right" }
         }]
     });
-    function showDetails(e) {
 
-    }
+
     //search
     $('#search').on('input', function (e) {
         var grid = $('#book_grid').data('kendoGrid');
