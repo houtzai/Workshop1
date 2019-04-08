@@ -100,7 +100,20 @@ $(document).ready(function () {
     var validator = $("#book_form").kendoValidator().data("kendoValidator");
     $("#save_book").click(function () {
         if (validator.validate()) {
-            alert("OK");
+            var newBookData = {
+                "BookId": bookDataFromLocalStorage.length + 1,
+                "BookCategory": $("#book_category").val(),
+                "BookName": $("#book_name").val(),
+                "BookAuthor": $("#book_author").val(),
+                "BookBoughtDate": $("#bought_datepicker").val(),
+                "BookPublisher": "",
+                "BookDeliveredDate": $("#delivered_datepicker").val(),
+                "BookPrice": parseInt($("#book_price").val(), 10),
+                "BookAmount": parseInt($("#book_amount").val(), 10),
+                "BookTotal": bookTotal
+            };
+            bookDataFromLocalStorage.push(newBookData);
+            localStorage.setItem('bookData', JSON.stringify(bookDataFromLocalStorage));
         }
     });
     
