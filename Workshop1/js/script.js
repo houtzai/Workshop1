@@ -1,4 +1,3 @@
-
 var bookDataFromLocalStorage = [];
 var bookCategoryList = [
     { text: "資料庫", value: "database", src: "image/database.jpg" },
@@ -35,8 +34,6 @@ function getBoolean(str) {
     }
 }
 
-
-
 $(document).ready(function () {
     //語系
     kendo.culture('zh-TW');
@@ -45,7 +42,7 @@ $(document).ready(function () {
         $("#add_window").data("kendoWindow").center().open();
     });
     $("#add_window").kendoWindow({
-        width: 800,
+        width: 600,
         title: "新增書籍",
         visible: false,
         actions: [
@@ -61,59 +58,55 @@ $(document).ready(function () {
         dataSource: bookCategoryList,
         index: 0,
         change: function (e) {
-            var src = "";
+            var imageSrc = "";
             bookCategoryList.forEach(function (item, index, array) {
                 if (item.value === $("#book_category").val()) {
-                    src = item.src;
+                    imageSrc = item.src;
                 }
             });
-            $('.book-image').attr('src', src);
+            $('.book-image').attr('src', imageSrc);
         }
     });
     var todayDate = kendo.toString(kendo.parseDate(new Date()), 'yyyy-MM-dd');
     $("#bought_datepicker").kendoDatePicker({
         format: "yyyy-MM-dd",
-        value: todayDate
-    });
+        value: todayDate,
+        change: function (e) {
+            var value = this.value();
+            $("#delivered_datepicker").data("kendoDatePicker").min(value);
+        }
+    });  
     $("#delivered_datepicker").kendoDatePicker({
         format: "yyyy-MM-dd",
+        min: $("#bought_datepicker").data("kendoDatePicker").value()
     });
-    var book_price = 0, book_amount = 0, book_total = 0;
+    var bookPrice = 0, bookAmount = 0, bookTotal = 0;
     $("#book_price").kendoNumericTextBox({
         format: "{0:N0}",
         change: function () {
-            book_price = this.value();
-            book_total = book_price * book_amount;
-            $("#book_total").text(kendo.toString(book_total, "n0"));
+            bookPrice = this.value();
+            bookTotal = bookPrice * bookAmount;
+            $("#book_total").text(kendo.toString(bookTotal, "n0"));
         }
     });
     $("#book_amount").kendoNumericTextBox({
-        format: "{0:N0}",
+        format: "{0:N0}",      
         change: function () {
-            book_amount = this.value();
-            book_total = book_price * book_amount;
-            $("#book_total").text(kendo.toString(book_total, "n0"));
+            bookAmount = this.value();
+            bookTotal = bookPrice * bookAmount;
+            $("#book_total").text(kendo.toString(bookTotal, "n0"));
         }
     });
+    var validator = $("#book_form").kendoValidator().data("kendoValidator");
     $("#save_book").click(function () {
-        var newbookdata = {
-            "BookId": bookDataFromLocalStorage.length + 1,
-            "BookCategory": $("#book_category").val(),
-            "BookName": $("#book_name").val(),
-            "BookAuthor": $("#book_author").val(),
-            "BookBoughtDate": $("#bought_datepicker").val(),
-            "BookPublisher": "",
-            "BookDeliveredDate": $("#delivered_datepicker").val(),
-            "BookPrice": parseInt($("#book_price").val(), 10),
-            "BookAmount": parseInt($("#book_amount").val(), 10),
-            "BookTotal": book_total
-        };
-        bookDataFromLocalStorage.push(newbookdata);
-        localStorage.setItem('bookData', JSON.stringify(bookDataFromLocalStorage));
+        if (validator.validate()) {
+            alert("OK");
+        }
     });
+    
 
     //book_grid
-    var deletedata;
+    var deleteData;
     var wnd = $("#delete_details").kendoDialog({
         modal: false,
         visible: false,
@@ -123,7 +116,7 @@ $(document).ready(function () {
             {
                 text: 'OK', primary: true, action: function (e) {
                     for (var key in bookDataFromLocalStorage) {
-                        if (bookDataFromLocalStorage[key]["BookId"] == deletedata) {
+                        if (bookDataFromLocalStorage[key]["BookId"] == deleteData) {
                             bookDataFromLocalStorage.splice(key, 1);
                         }
                     }
@@ -151,7 +144,7 @@ $(document).ready(function () {
                 text: "刪除", click: function (e) {
                     e.preventDefault();
                     var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-                    deletedata = dataItem.BookId;
+                    deleteData = dataItem.BookId;
                     wnd.content("確定刪除[" + dataItem.BookName + "]嗎?");
                     wnd.open();
                 }
@@ -167,7 +160,16 @@ $(document).ready(function () {
         }, {
             field: "BookCategory",
             title: "書籍種類",
-            type: "string"
+            type: "string",
+            template: function (e) {
+                var bookcategoryText = "";
+                bookCategoryList.forEach(function (item, index, array) {
+                    if (item.value === e.BookCategory) {
+                        bookcategoryText = item.text;
+                    }
+                })
+                return bookcategoryText;
+            }
         }, {
             field: "BookAuthor",
             title: "作者",
@@ -182,8 +184,8 @@ $(document).ready(function () {
             title: "送達狀態",
             type: "date",
             format: "{0:yyyy-MM-dd}",
-                template: "#if (BookDeliveredDate !=null){#" +
-                    "<i class='fas fa-truck' title='#: kendo.toString(BookDeliveredDate, 'yyyy-MM-dd') #'></i>" +
+            template: "#if (BookDeliveredDate !=null){#" +
+                "<i class='fas fa-truck' title='#: kendo.toString(BookDeliveredDate, 'yyyy-MM-dd') #'></i>" +
                 "#}#"
         }, {
             field: "BookPrice",
@@ -205,7 +207,6 @@ $(document).ready(function () {
             attributes: { style: "text-align:right" }
         }]
     });
-
 
     //search
     $('#search').on('input', function (e) {
