@@ -100,8 +100,14 @@ $(document).ready(function () {
     var validator = $("#book_form").kendoValidator().data("kendoValidator");
     $("#save_book").click(function () {
         if (validator.validate()) {
+            var max=0;
+            bookDataFromLocalStorage.forEach(function (item, index, array) {
+                if (item.BookId > max) {
+                    max = item.BookId;
+                }
+            })
             var newBookData = {
-                "BookId": bookDataFromLocalStorage.length + 1,
+                "BookId": max + 1,
                 "BookCategory": $("#book_category").val(),
                 "BookName": $("#book_name").val(),
                 "BookAuthor": $("#book_author").val(),
@@ -114,6 +120,8 @@ $(document).ready(function () {
             };
             bookDataFromLocalStorage.push(newBookData);
             localStorage.setItem('bookData', JSON.stringify(bookDataFromLocalStorage));
+            $("#add_window").data("kendoWindow").close();
+            window.location.reload();
         }
     });
     
@@ -134,6 +142,7 @@ $(document).ready(function () {
                         }
                     }
                     localStorage.setItem('bookData', JSON.stringify(bookDataFromLocalStorage));
+                    window.location.reload(); 
                 }
             },
             { text: 'CANCEL' }
