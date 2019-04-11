@@ -84,7 +84,7 @@ $(document).ready(function () {
     $("#book_price").kendoNumericTextBox({
         format: "{0:N0}",
         change: function () {
-            bookPrice = this.value();
+            bookPrice = Math.round(this.value());
             bookTotal = bookPrice * bookAmount;
             $("#book_total").text(kendo.toString(bookTotal, "n0"));
         }
@@ -92,7 +92,7 @@ $(document).ready(function () {
     $("#book_amount").kendoNumericTextBox({
         format: "{0:N0}",      
         change: function () {
-            bookAmount = this.value();
+            bookAmount = Math.round(this.value());
             bookTotal = bookPrice * bookAmount;
             $("#book_total").text(kendo.toString(bookTotal, "n0"));
         }
